@@ -1,10 +1,46 @@
-
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+
+class PdfViewWidget extends StatefulWidget {
+  @override
+  _PdfViewWidgetState createState() => _PdfViewWidgetState();
+}
+
+class _PdfViewWidgetState extends State<PdfViewWidget> {
+  late PdfViewerController _pdfViewController;
+  bool _isInitialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializePdfViewController();
+  }
+
+  Future<void> _initializePdfViewController() async {
+    // Initialize the PDFViewController here
+    _pdfViewController = PdfViewerController();
+    setState(() {
+      _isInitialized = true;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("PDF Viewer")),
+      body: _isInitialized
+          ? SfPdfViewer.asset(
+              'assets/mypdf.pdf',
+              controller: _pdfViewController,
+            )
+          : Center(child: CircularProgressIndicator()),
+    );
+  }
+}
 
 void main() => runApp(const MyApp());
 
@@ -127,8 +163,14 @@ class PdfViewPage extends StatefulWidget {
 }
 
 class _PdfViewPageState extends State<PdfViewPage> {
-  late PdfViewerController _pdfViewController;
+  PdfViewerController? _pdfViewController;  // Use nullable type
   bool pdfReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _pdfViewController = PdfViewerController(); // Initialize in initState
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -159,23 +201,23 @@ class _PdfViewPageState extends State<PdfViewPage> {
       floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
-          if (_pdfViewController.pageNumber > 1)
+          if (_pdfViewController != null && _pdfViewController!.pageNumber > 1)
             FloatingActionButton.extended(
               backgroundColor: Colors.red,
-              label: Text("Go to ${_pdfViewController.pageNumber - 1}"),
+              label: Text("Go to ${_pdfViewController!.pageNumber - 1}"),
               onPressed: () {
                 setState(() {
-                  _pdfViewController.jumpToPage(_pdfViewController.pageNumber - 1);
+                  _pdfViewController!.jumpToPage(_pdfViewController!.pageNumber - 1);
                 });
               },
             ),
-          if (_pdfViewController.pageNumber < _pdfViewController.pageCount)
+          if (_pdfViewController != null && _pdfViewController!.pageNumber < _pdfViewController!.pageCount)
             FloatingActionButton.extended(
               backgroundColor: Colors.green,
-              label: Text("Go to ${_pdfViewController.pageNumber + 1}"),
+              label: Text("Go to ${_pdfViewController!.pageNumber + 1}"),
               onPressed: () {
                 setState(() {
-                  _pdfViewController.jumpToPage(_pdfViewController.pageNumber + 1);
+                  _pdfViewController!.jumpToPage(_pdfViewController!.pageNumber + 1);
                 });
               },
             ),
